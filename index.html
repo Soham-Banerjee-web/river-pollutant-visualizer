@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explore tide-driven upstream pollutant transport in a two-dimensional river.">
+    <title>River Pulse | Pollutant transport</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="River Pulse home">
+          <span class="brand-mark" aria-hidden="true">≈</span>
+          <span>RIVER<span class="brand-light">PULSE</span></span>
+        </a>
+        <div class="topbar-note"><span class="live-dot"></span> 2D TRANSPORT MODEL <span class="topbar-divider">/</span> NO TURBULENCE</div>
+      </header>
+
+      <section class="intro">
+        <div class="eyebrow">TIDAL RIVER · ADVECTION &amp; DIFFUSION</div>
+        <h1>Follow the <span>upstream pulse.</span></h1>
+        <p>A dissolved pollutant enters near the river mouth. Watch the tide push it against the river current, then carry it back downstream.</p>
+      </section>
+
+      <section class="workspace" aria-label="River pollutant simulation">
+        <aside class="control-panel">
+          <div class="panel-heading">
+            <div>
+              <div class="eyebrow">MODEL CONTROLS</div>
+              <h2>River conditions</h2>
+            </div>
+            <button id="reset-button" class="icon-button" type="button" aria-label="Reset model" title="Reset model">↺</button>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="river-current">River current</label><span id="river-current-value" class="value">−0.06 m/s</span></div>
+            <input id="river-current" type="range" min="-0.2" max="0" step="0.01" value="-0.06">
+            <div class="range-ends"><span>stronger downstream</span><span>still water</span></div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="tide-amplitude">Tidal velocity</label><span id="tide-amplitude-value" class="value">0.18 m/s</span></div>
+            <input id="tide-amplitude" type="range" min="0" max="0.3" step="0.01" value="0.18">
+            <div class="range-ends"><span>weaker tide</span><span>stronger tide</span></div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="tide-period">Tidal period</label><span id="tide-period-value" class="value">12.42 h</span></div>
+            <input id="tide-period" type="range" min="6" max="24" step="0.01" value="12.42">
+            <div class="range-ends"><span>6 hours</span><span>24 hours</span></div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="diffusivity">Diffusion coefficient, D</label><span id="diffusivity-value" class="value">1.0 × 10⁻⁹ m²/s</span></div>
+            <input id="diffusivity" type="range" min="-9" max="-2" step="0.1" value="-9">
+            <div class="range-ends"><span>10⁻⁹</span><span>10⁻² m²/s</span></div>
+            <p class="control-hint">Molecular diffusion only. No turbulent or eddy-diffusion term.</p>
+          </div>
+
+          <div class="source-card">
+            <div class="source-symbol" aria-hidden="true">●</div>
+            <div><div class="source-title">Instantaneous release</div><div class="source-detail">10 kg · Gaussian patch · 3 m depth</div></div>
+          </div>
+
+          <div class="panel-footer">
+            <span class="status-dot"></span>
+            <span>Depth-averaged · 2D · conservative scalar</span>
+          </div>
+        </aside>
+
+        <div class="visual-panel">
+          <div class="visual-header">
+            <div>
+              <div class="eyebrow">POLLUTANT CONCENTRATION</div>
+              <div class="visual-title">River reach <span class="mono">· 2,000 m × 200 m</span></div>
+            </div>
+            <div id="flow-badge" class="flow-badge"><span class="flow-indicator">↑</span><span id="flow-state">FLOOD TIDE</span></div>
+          </div>
+
+          <div class="map-wrap">
+            <div class="axis-label axis-upstream">UPSTREAM</div>
+            <canvas id="river-canvas" aria-label="Animated 2D pollutant concentration in the river, with upstream to the right"></canvas>
+            <div class="axis-label axis-downstream">DOWNSTREAM · RIVER MOUTH</div>
+            <div class="map-scale"><span>0 m</span><span>1,000 m</span><span>2,000 m</span></div>
+            <div class="color-legend"><span>LOW</span><div class="color-ramp"></div><span>HIGH</span><span class="legend-units">mg/m³</span></div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric"><span class="metric-label">TIME ELAPSED</span><span id="elapsed-time" class="metric-value">00:00:00</span></div>
+            <div class="metric"><span class="metric-label">UPSTREAM VELOCITY</span><span id="current-velocity" class="metric-value">+0.12 <small>m/s</small></span></div>
+            <div class="metric"><span class="metric-label">PLUME CENTROID</span><span id="centroid-position" class="metric-value">200 <small>m from mouth</small></span></div>
+            <div class="metric"><span class="metric-label">PEAK CONCENTRATION</span><span id="peak-concentration" class="metric-value">— <small>mg/m³</small></span></div>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-controls">
+              <button id="play-button" class="play-button" type="button" aria-label="Play simulation"><span id="play-icon">▶</span></button>
+              <div class="timeline-copy"><span class="timeline-title">SIMULATION TIME</span><span id="timeline-caption" class="timeline-caption">A flood tide is carrying the plume upstream.</span></div>
+              <span id="end-time-label" class="end-time mono">24:00:00</span>
+            </div>
+            <input id="time-slider" class="time-slider" type="range" min="0" max="86400" step="300" value="0" aria-label="Simulation time">
+          </div>
+
+          <div class="profile-wrap">
+            <div class="profile-heading"><span class="eyebrow">LONGITUDINAL PROFILE</span><span class="profile-note">centre of river · concentration along reach</span></div>
+            <canvas id="profile-canvas" aria-label="Pollutant concentration along the river centerline"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <span>Prescribed sinusoidal tide · open river ends · no-flux river banks</span>
+        <span class="mono">UPSTREAM POSITION +x <span aria-hidden="true">→</span></span>
+      </footer>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
